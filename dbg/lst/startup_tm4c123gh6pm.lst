@@ -1,0 +1,2989 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ;/******************************************************
+                       *********************/
+    2 00000000         ; * @file     startup_TM4C123GH6PM.s for ARM-KEIL ARM as
+                       sembler
+    3 00000000         ; * @brief    CMSIS Cortex-M4F Core Device Startup File 
+                       for TM4C123GH6PM
+    4 00000000         ; * @version  CMSIS 4.3.0
+    5 00000000         ; * @date     20 August 2015
+    6 00000000         ; *
+    7 00000000         ; * @description
+    8 00000000         ; * Created from the CMSIS template for the specified de
+                       vice
+    9 00000000         ; * Quantum Leaps, www.state-machine.com
+   10 00000000         ; *
+   11 00000000         ; * @note
+   12 00000000         ; * The symbols Stack_Size and Heap_Size should be provi
+                       ded on the command-
+   13 00000000         ; * line options to the assembler, for example as:
+   14 00000000         ; *     --pd "Stack_Size SETA 512" --pd "Heap_Size SETA 
+                       0"
+   15 00000000         ; *
+   16 00000000         ; * @note
+   17 00000000         ; * The function assert_failed defined at the end of thi
+                       s file defines
+   18 00000000         ; * the error/assertion handling policy for the applicat
+                       ion and might
+   19 00000000         ; * need to be customized for each project. This functio
+                       n is defined in
+   20 00000000         ; * assembly to re-set the stack pointer, in case it is 
+                       corrupted by the
+   21 00000000         ; * time assert_failed is called.
+   22 00000000         ; *
+   23 00000000         ; ******************************************************
+                       *********************/
+   24 00000000         ;/* Copyright (c) 2012 ARM LIMITED
+   25 00000000         ;
+   26 00000000         ;  All rights reserved.
+   27 00000000         ;  Redistribution and use in source and binary forms, wi
+                       th or without
+   28 00000000         ;  modification, are permitted provided that the followi
+                       ng conditions are met:
+   29 00000000         ;  - Redistributions of source code must retain the abov
+                       e copyright
+   30 00000000         ;    notice, this list of conditions and the following d
+                       isclaimer.
+   31 00000000         ;  - Redistributions in binary form must reproduce the a
+                       bove copyright
+   32 00000000         ;    notice, this list of conditions and the following d
+                       isclaimer in the
+   33 00000000         ;    documentation and/or other materials provided with 
+                       the distribution.
+   34 00000000         ;  - Neither the name of ARM nor the names of its contri
+                       butors may be used
+   35 00000000         ;    to endorse or promote products derived from this so
+                       ftware without
+   36 00000000         ;    specific prior written permission.
+   37 00000000         ;
+   38 00000000         ;  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AN
+                       D CONTRIBUTORS "AS IS"
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   39 00000000         ;  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
+                        NOT LIMITED TO, THE
+   40 00000000         ;  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+                        A PARTICULAR PURPOSE
+   41 00000000         ;  ARE DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDERS A
+                       ND CONTRIBUTORS BE
+   42 00000000         ;  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+                        EXEMPLARY, OR
+   43 00000000         ;  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+                        PROCUREMENT OF
+   44 00000000         ;  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR P
+                       ROFITS; OR BUSINESS
+   45 00000000         ;  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIA
+                       BILITY, WHETHER IN
+   46 00000000         ;  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIG
+                       ENCE OR OTHERWISE)
+   47 00000000         ;  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, E
+                       VEN IF ADVISED OF THE
+   48 00000000         ;  POSSIBILITY OF SUCH DAMAGE.
+   49 00000000         ;-------------------------------------------------------
+                       --------------------*/
+   50 00000000         
+   51 00000000         ;*******************************************************
+                       ***********************
+   52 00000000         ;
+   53 00000000         ; Allocate space for the stack.
+   54 00000000         ;
+   55 00000000         ;*******************************************************
+                       ***********************
+   56 00000000                 AREA             STACK, NOINIT, READWRITE, ALIGN
+=3
+   57 00000000         __stack_base
+   58 00000000         StackMem
+   59 00000000                 SPACE            Stack_Size  ; provided in comma
+                                                            nd-line option, for
+                                                             example:
+   60 00000400         ; --pd "Stack_Size SETA 512"
+   61 00000400         __stack_limit
+   62 00000400         __initial_sp
+   63 00000400         
+   64 00000400         ;*******************************************************
+                       ***********************
+   65 00000400         ;
+   66 00000400         ; Allocate space for the heap.
+   67 00000400         ;
+   68 00000400         ;*******************************************************
+                       ***********************
+   69 00000400                 AREA             HEAP, NOINIT, READWRITE, ALIGN=
+3
+   70 00000000         __heap_base
+   71 00000000         HeapMem
+   72 00000000                 SPACE            Heap_Size   ; provided in comma
+                                                            nd-line option, for
+                                                             example:
+   73 00000010         ; --pd "Heap_Size SETA 0"
+   74 00000010         __heap_limit
+   75 00000010         
+   76 00000010         ;*******************************************************
+                       ***********************
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   77 00000010         ;
+   78 00000010         ; Indicate that the code in this file preserves 8-byte a
+                       lignment of the stack.
+   79 00000010         ;
+   80 00000010         ;*******************************************************
+                       ***********************
+   81 00000010                 PRESERVE8
+   82 00000010         
+   83 00000010         ;*******************************************************
+                       ***********************
+   84 00000010         ;
+   85 00000010         ; Place code into the reset code section.
+   86 00000010         ;
+   87 00000010         ;*******************************************************
+                       ***********************
+   88 00000010                 AREA             RESET, DATA, READONLY
+   89 00000000                 EXPORT           __Vectors
+   90 00000000                 EXPORT           __Vectors_End
+   91 00000000                 EXPORT           __Vectors_Size
+   92 00000000         
+   93 00000000         ;*******************************************************
+                       ***********************
+   94 00000000         ;
+   95 00000000         ; The vector table.
+   96 00000000         ;
+   97 00000000         ;*******************************************************
+                       ***********************
+   98 00000000         __Vectors
+   99 00000000 00000000        DCD              __initial_sp ; Top of Stack
+  100 00000004 00000000        DCD              Reset_Handler ; Reset Handler
+  101 00000008 00000000        DCD              NMI_Handler ; NMI Handler
+  102 0000000C 00000000        DCD              HardFault_Handler ; Hard Fault 
+                                                            Handler
+  103 00000010 00000000        DCD              MemManage_Handler ; The MPU fau
+                                                            lt handler
+  104 00000014 00000000        DCD              BusFault_Handler ; The bus faul
+                                                            t handler
+  105 00000018 00000000        DCD              UsageFault_Handler ; The usage 
+                                                            fault handler
+  106 0000001C 00000000        DCD              0           ; Reserved
+  107 00000020 00000000        DCD              0           ; Reserved
+  108 00000024 00000000        DCD              0           ; Reserved
+  109 00000028 00000000        DCD              0           ; Reserved
+  110 0000002C 00000000        DCD              SVC_Handler ; SVCall handler
+  111 00000030 00000000        DCD              DebugMon_Handler ; Debug monito
+                                                            r handler
+  112 00000034 00000000        DCD              0           ; Reserved
+  113 00000038 00000000        DCD              PendSV_Handler ; The PendSV han
+                                                            dler
+  114 0000003C 00000000        DCD              SysTick_Handler ; The SysTick h
+                                                            andler
+  115 00000040         
+  116 00000040         ; IRQ handlers...
+  117 00000040 00000000        DCD              GPIOPortA_IRQHandler 
+                                                            ; GPIO Port A
+  118 00000044 00000000        DCD              GPIOPortB_IRQHandler 
+                                                            ; GPIO Port B
+  119 00000048 00000000        DCD              GPIOPortC_IRQHandler 
+                                                            ; GPIO Port C
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  120 0000004C 00000000        DCD              GPIOPortD_IRQHandler 
+                                                            ; GPIO Port D
+  121 00000050 00000000        DCD              GPIOPortE_IRQHandler 
+                                                            ; GPIO Port E
+  122 00000054 00000000        DCD              UART0_IRQHandler 
+                                                            ; UART0 Rx and Tx
+  123 00000058 00000000        DCD              UART1_IRQHandler 
+                                                            ; UART1 Rx and Tx
+  124 0000005C 00000000        DCD              SSI0_IRQHandler 
+                                                            ; SSI0 Rx and Tx
+  125 00000060 00000000        DCD              I2C0_IRQHandler ; I2C0 Master a
+                                                            nd Slave
+  126 00000064 00000000        DCD              PWMFault_IRQHandler ; PWM Fault
+                                                            
+  127 00000068 00000000        DCD              PWMGen0_IRQHandler 
+                                                            ; PWM Generator 0
+  128 0000006C 00000000        DCD              PWMGen1_IRQHandler 
+                                                            ; PWM Generator 1
+  129 00000070 00000000        DCD              PWMGen2_IRQHandler 
+                                                            ; PWM Generator 2
+  130 00000074 00000000        DCD              QEI0_IRQHandler ; Quadrature En
+                                                            coder 0
+  131 00000078 00000000        DCD              ADCSeq0_IRQHandler 
+                                                            ; ADC Sequence 0
+  132 0000007C 00000000        DCD              ADCSeq1_IRQHandler 
+                                                            ; ADC Sequence 1
+  133 00000080 00000000        DCD              ADCSeq2_IRQHandler 
+                                                            ; ADC Sequence 2
+  134 00000084 00000000        DCD              ADCSeq3_IRQHandler 
+                                                            ; ADC Sequence 3
+  135 00000088 00000000        DCD              Watchdog_IRQHandler 
+                                                            ; Watchdog timer
+  136 0000008C 00000000        DCD              Timer0A_IRQHandler ; Timer 0 su
+                                                            btimer A
+  137 00000090 00000000        DCD              Timer0B_IRQHandler ; Timer 0 su
+                                                            btimer B
+  138 00000094 00000000        DCD              Timer1A_IRQHandler ; Timer 1 su
+                                                            btimer A
+  139 00000098 00000000        DCD              Timer1B_IRQHandler ; Timer 1 su
+                                                            btimer B
+  140 0000009C 00000000        DCD              Timer2A_IRQHandler ; Timer 2 su
+                                                            btimer A
+  141 000000A0 00000000        DCD              Timer2B_IRQHandler ; Timer 2 su
+                                                            btimer B
+  142 000000A4 00000000        DCD              Comp0_IRQHandler ; Analog Compa
+                                                            rator 0
+  143 000000A8 00000000        DCD              Comp1_IRQHandler ; Analog Compa
+                                                            rator 1
+  144 000000AC 00000000        DCD              Comp2_IRQHandler ; Analog Compa
+                                                            rator 2
+  145 000000B0 00000000        DCD              SysCtrl_IRQHandler ; System Con
+                                                            trol (PLL, OSC, BO)
+                                                            
+  146 000000B4 00000000        DCD              FlashCtrl_IRQHandler 
+                                                            ; FLASH Control
+  147 000000B8 00000000        DCD              GPIOPortF_IRQHandler 
+                                                            ; GPIO Port F
+  148 000000BC 00000000        DCD              GPIOPortG_IRQHandler 
+                                                            ; GPIO Port G
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+  149 000000C0 00000000        DCD              GPIOPortH_IRQHandler 
+                                                            ; GPIO Port H
+  150 000000C4 00000000        DCD              UART2_IRQHandler 
+                                                            ; UART2 Rx and Tx
+  151 000000C8 00000000        DCD              SSI1_IRQHandler 
+                                                            ; SSI1 Rx and Tx
+  152 000000CC 00000000        DCD              Timer3A_IRQHandler ; Timer 3 su
+                                                            btimer A
+  153 000000D0 00000000        DCD              Timer3B_IRQHandler ; Timer 3 su
+                                                            btimer B
+  154 000000D4 00000000        DCD              I2C1_IRQHandler ; I2C1 Master a
+                                                            nd Slave
+  155 000000D8 00000000        DCD              QEI1_IRQHandler ; Quadrature En
+                                                            coder 1
+  156 000000DC 00000000        DCD              CAN0_IRQHandler ; CAN0
+  157 000000E0 00000000        DCD              CAN1_IRQHandler ; CAN1
+  158 000000E4 00000000        DCD              CAN2_IRQHandler ; CAN2
+  159 000000E8 00000000        DCD              0           ; Reserved
+  160 000000EC 00000000        DCD              Hibernate_IRQHandler 
+                                                            ; Hibernate
+  161 000000F0 00000000        DCD              USB0_IRQHandler ; USB0
+  162 000000F4 00000000        DCD              PWMGen3_IRQHandler 
+                                                            ; PWM Generator 3
+  163 000000F8 00000000        DCD              uDMAST_IRQHandler ; uDMA Softwa
+                                                            re Transfer
+  164 000000FC 00000000        DCD              uDMAError_IRQHandler 
+                                                            ; uDMA Error
+  165 00000100 00000000        DCD              ADC1Seq0_IRQHandler 
+                                                            ; ADC1 Sequence 0
+  166 00000104 00000000        DCD              ADC1Seq1_IRQHandler 
+                                                            ; ADC1 Sequence 1
+  167 00000108 00000000        DCD              ADC1Seq2_IRQHandler 
+                                                            ; ADC1 Sequence 2
+  168 0000010C 00000000        DCD              ADC1Seq3_IRQHandler 
+                                                            ; ADC1 Sequence 3
+  169 00000110 00000000        DCD              0           ; Reserved
+  170 00000114 00000000        DCD              0           ; Reserved
+  171 00000118 00000000        DCD              GPIOPortJ_IRQHandler 
+                                                            ; GPIO Port J
+  172 0000011C 00000000        DCD              GPIOPortK_IRQHandler 
+                                                            ; GPIO Port K
+  173 00000120 00000000        DCD              GPIOPortL_IRQHandler 
+                                                            ; GPIO Port L
+  174 00000124 00000000        DCD              SSI2_IRQHandler 
+                                                            ; SSI2 Rx and Tx
+  175 00000128 00000000        DCD              SSI3_IRQHandler 
+                                                            ; SSI3 Rx and Tx
+  176 0000012C 00000000        DCD              UART3_IRQHandler 
+                                                            ; UART3 Rx and Tx
+  177 00000130 00000000        DCD              UART4_IRQHandler 
+                                                            ; UART4 Rx and Tx
+  178 00000134 00000000        DCD              UART5_IRQHandler 
+                                                            ; UART5 Rx and Tx
+  179 00000138 00000000        DCD              UART6_IRQHandler 
+                                                            ; UART6 Rx and Tx
+  180 0000013C 00000000        DCD              UART7_IRQHandler 
+                                                            ; UART7 Rx and Tx
+  181 00000140 00000000        DCD              0           ; Reserved
+  182 00000144 00000000        DCD              0           ; Reserved
+
+
+
+ARM Macro Assembler    Page 6 
+
+
+  183 00000148 00000000        DCD              0           ; Reserved
+  184 0000014C 00000000        DCD              0           ; Reserved
+  185 00000150 00000000        DCD              I2C2_IRQHandler ; I2C2 Master a
+                                                            nd Slave
+  186 00000154 00000000        DCD              I2C3_IRQHandler ; I2C3 Master a
+                                                            nd Slave
+  187 00000158 00000000        DCD              Timer4A_IRQHandler ; Timer 4 su
+                                                            btimer A
+  188 0000015C 00000000        DCD              Timer4B_IRQHandler ; Timer 4 su
+                                                            btimer B
+  189 00000160 00000000        DCD              0           ; Reserved
+  190 00000164 00000000        DCD              0           ; Reserved
+  191 00000168 00000000        DCD              0           ; Reserved
+  192 0000016C 00000000        DCD              0           ; Reserved
+  193 00000170 00000000        DCD              0           ; Reserved
+  194 00000174 00000000        DCD              0           ; Reserved
+  195 00000178 00000000        DCD              0           ; Reserved
+  196 0000017C 00000000        DCD              0           ; Reserved
+  197 00000180 00000000        DCD              0           ; Reserved
+  198 00000184 00000000        DCD              0           ; Reserved
+  199 00000188 00000000        DCD              0           ; Reserved
+  200 0000018C 00000000        DCD              0           ; Reserved
+  201 00000190 00000000        DCD              0           ; Reserved
+  202 00000194 00000000        DCD              0           ; Reserved
+  203 00000198 00000000        DCD              0           ; Reserved
+  204 0000019C 00000000        DCD              0           ; Reserved
+  205 000001A0 00000000        DCD              0           ; Reserved
+  206 000001A4 00000000        DCD              0           ; Reserved
+  207 000001A8 00000000        DCD              0           ; Reserved
+  208 000001AC 00000000        DCD              0           ; Reserved
+  209 000001B0 00000000        DCD              Timer5A_IRQHandler ; Timer 5 su
+                                                            btimer A
+  210 000001B4 00000000        DCD              Timer5B_IRQHandler ; Timer 5 su
+                                                            btimer B
+  211 000001B8 00000000        DCD              WideTimer0A_IRQHandler ; Wide T
+                                                            imer 0 subtimer A
+  212 000001BC 00000000        DCD              WideTimer0B_IRQHandler ; Wide T
+                                                            imer 0 subtimer B
+  213 000001C0 00000000        DCD              WideTimer1A_IRQHandler ; Wide T
+                                                            imer 1 subtimer A
+  214 000001C4 00000000        DCD              WideTimer1B_IRQHandler ; Wide T
+                                                            imer 1 subtimer B
+  215 000001C8 00000000        DCD              WideTimer2A_IRQHandler ; Wide T
+                                                            imer 2 subtimer A
+  216 000001CC 00000000        DCD              WideTimer2B_IRQHandler ; Wide T
+                                                            imer 2 subtimer B
+  217 000001D0 00000000        DCD              WideTimer3A_IRQHandler ; Wide T
+                                                            imer 3 subtimer A
+  218 000001D4 00000000        DCD              WideTimer3B_IRQHandler ; Wide T
+                                                            imer 3 subtimer B
+  219 000001D8 00000000        DCD              WideTimer4A_IRQHandler ; Wide T
+                                                            imer 4 subtimer A
+  220 000001DC 00000000        DCD              WideTimer4B_IRQHandler ; Wide T
+                                                            imer 4 subtimer B
+  221 000001E0 00000000        DCD              WideTimer5A_IRQHandler ; Wide T
+                                                            imer 5 subtimer A
+  222 000001E4 00000000        DCD              WideTimer5B_IRQHandler ; Wide T
+                                                            imer 5 subtimer B
+  223 000001E8 00000000        DCD              FPU_IRQHandler ; FPU
+
+
+
+ARM Macro Assembler    Page 7 
+
+
+  224 000001EC 00000000        DCD              0           ; Reserved
+  225 000001F0 00000000        DCD              0           ; Reserved
+  226 000001F4 00000000        DCD              I2C4_IRQHandler ; I2C4 Master a
+                                                            nd Slave
+  227 000001F8 00000000        DCD              I2C5_IRQHandler ; I2C5 Master a
+                                                            nd Slave
+  228 000001FC 00000000        DCD              GPIOPortM_IRQHandler 
+                                                            ; GPIO Port M
+  229 00000200 00000000        DCD              GPIOPortN_IRQHandler 
+                                                            ; GPIO Port N
+  230 00000204 00000000        DCD              QEI2_IRQHandler ; Quadrature En
+                                                            coder 2
+  231 00000208 00000000        DCD              0           ; Reserved
+  232 0000020C 00000000        DCD              0           ; Reserved
+  233 00000210 00000000        DCD              GPIOPortP0_IRQHandler ; GPIO Po
+                                                            rt P (Summary or P0
+                                                            )
+  234 00000214 00000000        DCD              GPIOPortP1_IRQHandler 
+                                                            ; GPIO Port P1
+  235 00000218 00000000        DCD              GPIOPortP2_IRQHandler 
+                                                            ; GPIO Port P2
+  236 0000021C 00000000        DCD              GPIOPortP3_IRQHandler 
+                                                            ; GPIO Port P3
+  237 00000220 00000000        DCD              GPIOPortP4_IRQHandler 
+                                                            ; GPIO Port P4
+  238 00000224 00000000        DCD              GPIOPortP5_IRQHandler 
+                                                            ; GPIO Port P5
+  239 00000228 00000000        DCD              GPIOPortP6_IRQHandler 
+                                                            ; GPIO Port P6
+  240 0000022C 00000000        DCD              GPIOPortP7_IRQHandler 
+                                                            ; GPIO Port P7
+  241 00000230 00000000        DCD              GPIOPortQ0_IRQHandler ; GPIO Po
+                                                            rt Q (Summary or Q0
+                                                            )
+  242 00000234 00000000        DCD              GPIOPortQ1_IRQHandler 
+                                                            ; GPIO Port Q1
+  243 00000238 00000000        DCD              GPIOPortQ2_IRQHandler 
+                                                            ; GPIO Port Q2
+  244 0000023C 00000000        DCD              GPIOPortQ3_IRQHandler 
+                                                            ; GPIO Port Q3
+  245 00000240 00000000        DCD              GPIOPortQ4_IRQHandler 
+                                                            ; GPIO Port Q4
+  246 00000244 00000000        DCD              GPIOPortQ5_IRQHandler 
+                                                            ; GPIO Port Q5
+  247 00000248 00000000        DCD              GPIOPortQ6_IRQHandler 
+                                                            ; GPIO Port Q6
+  248 0000024C 00000000        DCD              GPIOPortQ7_IRQHandler 
+                                                            ; GPIO Port Q7
+  249 00000250 00000000        DCD              GPIOPortR_IRQHandler 
+                                                            ; GPIO Port R
+  250 00000254 00000000        DCD              GPIOPortS_IRQHandler 
+                                                            ; GPIO Port S
+  251 00000258 00000000        DCD              PWM1Gen0_IRQHandler 
+                                                            ; PWM 1 Generator 0
+                                                            
+  252 0000025C 00000000        DCD              PWM1Gen1_IRQHandler 
+                                                            ; PWM 1 Generator 1
+                                                            
+  253 00000260 00000000        DCD              PWM1Gen2_IRQHandler 
+
+
+
+ARM Macro Assembler    Page 8 
+
+
+                                                            ; PWM 1 Generator 2
+                                                            
+  254 00000264 00000000        DCD              PWM1Gen3_IRQHandler 
+                                                            ; PWM 1 Generator 3
+                                                            
+  255 00000268 00000000        DCD              PWM1Fault_IRQHandler 
+                                                            ; PWM 1 Fault
+  256 0000026C         __Vectors_End
+  257 0000026C         
+  258 0000026C 0000026C 
+                       __Vectors_Size
+                               EQU              __Vectors_End - __Vectors
+  259 0000026C         
+  260 0000026C         
+  261 0000026C         
+  262 0000026C         ;*******************************************************
+                       ***********************
+  263 0000026C         ;
+  264 0000026C         ; This is the code for exception handlers.
+  265 0000026C         ;
+  266 0000026C         ;*******************************************************
+                       ***********************
+  267 0000026C                 AREA             |.text|, CODE, READONLY
+  268 00000000         
+  269 00000000         ;*******************************************************
+                       ***********************
+  270 00000000         ;
+  271 00000000         ; This is the code that gets called when the processor f
+                       irst starts execution
+  272 00000000         ; following a reset event.
+  273 00000000         ;
+  274 00000000         ;*******************************************************
+                       ***********************
+  275 00000000         Reset_Handler
+                               PROC
+  276 00000000                 EXPORT           Reset_Handler  [WEAK]
+  277 00000000                 IMPORT           SystemInit
+  278 00000000                 IMPORT           __main
+  279 00000000         
+  280 00000000 4817            LDR              r0, =SystemInit ; CMSIS system 
+                                                            initialization
+  281 00000002 4780            BLX              r0
+  282 00000004         
+  283 00000004         ; Call the C library enty point that handles startup. Th
+                       is will copy
+  284 00000004         ; the .data section initializers from flash to SRAM and 
+                       zero fill the
+  285 00000004         ; .bss section.
+  286 00000004 4817            LDR              r0, =__main
+  287 00000006 4700            BX               r0
+  288 00000008         
+  289 00000008         ; __main calls the main() function, which should not ret
+                       urn,
+  290 00000008         ; but just in case jump to assert_failed() if main retur
+                       ns.
+  291 00000008 2000            MOVS             r0,#0
+  292 0000000A 2100            MOVS             r1,#0       ; error number
+  293 0000000C E7FE            B                assert_failed
+  294 0000000E                 ENDP
+
+
+
+ARM Macro Assembler    Page 9 
+
+
+  295 0000000E         
+  296 0000000E         ;*******************************************************
+                       ***********************
+  297 0000000E         ;
+  298 0000000E         ; The NMI handler
+  299 0000000E         ;
+  300 0000000E         ;*******************************************************
+                       ***********************
+  301 0000000E         NMI_Handler
+                               PROC
+  302 0000000E                 EXPORT           NMI_Handler     [WEAK]
+  303 0000000E 2000            MOVS             r0,#0
+  304 00000010 2102            MOVS             r1,#2       ; NMI exception num
+                                                            ber
+  305 00000012 E7FE            B                assert_failed
+  306 00000014                 ENDP
+  307 00000014         
+  308 00000014         ;*******************************************************
+                       ***********************
+  309 00000014         ;
+  310 00000014         ; The Hard Fault handler
+  311 00000014         ;
+  312 00000014         ;*******************************************************
+                       ***********************
+  313 00000014         HardFault_Handler
+                               PROC
+  314 00000014                 EXPORT           HardFault_Handler [WEAK]
+  315 00000014 2000            MOVS             r0,#0
+  316 00000016 2103            MOVS             r1,#3       ; HardFault excepti
+                                                            on number
+  317 00000018 E7FE            B                assert_failed
+  318 0000001A                 ENDP
+  319 0000001A         
+  320 0000001A         ;*******************************************************
+                       ***********************
+  321 0000001A         ;
+  322 0000001A         ; The MPU fault handler
+  323 0000001A         ;
+  324 0000001A         ;*******************************************************
+                       ***********************
+  325 0000001A         MemManage_Handler
+                               PROC
+  326 0000001A                 EXPORT           MemManage_Handler     [WEAK]
+  327 0000001A 2000            MOVS             r0,#0
+  328 0000001C 2104            MOVS             r1,#4       ; MemManage excepti
+                                                            on number
+  329 0000001E E7FE            B                assert_failed
+  330 00000020                 ENDP
+  331 00000020         
+  332 00000020         ;*******************************************************
+                       ***********************
+  333 00000020         ;
+  334 00000020         ; The Bus Fault handler
+  335 00000020         ;
+  336 00000020         ;*******************************************************
+                       ***********************
+  337 00000020         BusFault_Handler
+                               PROC
+  338 00000020                 EXPORT           BusFault_Handler     [WEAK]
+
+
+
+ARM Macro Assembler    Page 10 
+
+
+  339 00000020 2000            MOVS             r0,#0
+  340 00000022 2105            MOVS             r1,#5       ; BusFault exceptio
+                                                            n number
+  341 00000024 E7FE            B                assert_failed
+  342 00000026                 ENDP
+  343 00000026         
+  344 00000026         ;*******************************************************
+                       ***********************
+  345 00000026         ;
+  346 00000026         ; The Usage Fault handler
+  347 00000026         ;
+  348 00000026         ;*******************************************************
+                       ***********************
+  349 00000026         UsageFault_Handler
+                               PROC
+  350 00000026                 EXPORT           UsageFault_Handler   [WEAK]
+  351 00000026 2000            MOVS             r0,#0
+  352 00000028 2106            MOVS             r1,#6       ; UsageFault except
+                                                            ion number
+  353 0000002A E7FE            B                assert_failed
+  354 0000002C                 ENDP
+  355 0000002C         
+  356 0000002C         ;*******************************************************
+                       ***********************
+  357 0000002C         ;
+  358 0000002C         ; The SVC handler
+  359 0000002C         ;
+  360 0000002C         ;*******************************************************
+                       ***********************
+  361 0000002C         SVC_Handler
+                               PROC
+  362 0000002C                 EXPORT           SVC_Handler   [WEAK]
+  363 0000002C 2000            MOVS             r0,#0
+  364 0000002E 210B            MOVS             r1,#11      ; SVCall exception 
+                                                            number
+  365 00000030 E7FE            B                assert_failed
+  366 00000032                 ENDP
+  367 00000032         
+  368 00000032         ;*******************************************************
+                       ***********************
+  369 00000032         ;
+  370 00000032         ; The Debug Monitor handler
+  371 00000032         ;
+  372 00000032         ;*******************************************************
+                       ***********************
+  373 00000032         DebugMon_Handler
+                               PROC
+  374 00000032                 EXPORT           DebugMon_Handler     [WEAK]
+  375 00000032 2000            MOVS             r0,#0
+  376 00000034 210C            MOVS             r1,#12      ; DebugMon exceptio
+                                                            n number
+  377 00000036 E7FE            B                assert_failed
+  378 00000038                 ENDP
+  379 00000038         
+  380 00000038         ;*******************************************************
+                       ***********************
+  381 00000038         ;
+  382 00000038         ; The PendSV handler
+  383 00000038         ;
+
+
+
+ARM Macro Assembler    Page 11 
+
+
+  384 00000038         ;*******************************************************
+                       ***********************
+  385 00000038         PendSV_Handler
+                               PROC
+  386 00000038                 EXPORT           PendSV_Handler       [WEAK]
+  387 00000038 2000            MOVS             r0,#0
+  388 0000003A 210E            MOVS             r1,#14      ; PendSV exception 
+                                                            number
+  389 0000003C E7FE            B                assert_failed
+  390 0000003E                 ENDP
+  391 0000003E         
+  392 0000003E         ;*******************************************************
+                       ***********************
+  393 0000003E         ;
+  394 0000003E         ; The SysTick handler
+  395 0000003E         ;
+  396 0000003E         ;*******************************************************
+                       ***********************
+  397 0000003E         SysTick_Handler
+                               PROC
+  398 0000003E                 EXPORT           SysTick_Handler     [WEAK]
+  399 0000003E 2000            MOVS             r0,#0
+  400 00000040 210F            MOVS             r1,#15      ; SysTick exception
+                                                             number
+  401 00000042 E7FE            B                assert_failed
+  402 00000044                 ENDP
+  403 00000044         
+  404 00000044         ;*******************************************************
+                       ***********************
+  405 00000044         ;
+  406 00000044         ; Define Default_Handledr as dummy for all IRQ handlers
+  407 00000044         ;
+  408 00000044         ;*******************************************************
+                       ***********************
+  409 00000044         Default_Handler
+                               PROC
+  410 00000044                 EXPORT           GPIOPortA_IRQHandler       [WEA
+K]
+  411 00000044                 EXPORT           GPIOPortB_IRQHandler       [WEA
+K]
+  412 00000044                 EXPORT           GPIOPortC_IRQHandler       [WEA
+K]
+  413 00000044                 EXPORT           GPIOPortD_IRQHandler       [WEA
+K]
+  414 00000044                 EXPORT           GPIOPortE_IRQHandler       [WEA
+K]
+  415 00000044                 EXPORT           UART0_IRQHandler           [WEA
+K]
+  416 00000044                 EXPORT           UART1_IRQHandler           [WEA
+K]
+  417 00000044                 EXPORT           SSI0_IRQHandler            [WEA
+K]
+  418 00000044                 EXPORT           I2C0_IRQHandler            [WEA
+K]
+  419 00000044                 EXPORT           PWMFault_IRQHandler        [WEA
+K]
+  420 00000044                 EXPORT           PWMGen0_IRQHandler         [WEA
+K]
+  421 00000044                 EXPORT           PWMGen1_IRQHandler         [WEA
+
+
+
+ARM Macro Assembler    Page 12 
+
+
+K]
+  422 00000044                 EXPORT           PWMGen2_IRQHandler         [WEA
+K]
+  423 00000044                 EXPORT           QEI0_IRQHandler            [WEA
+K]
+  424 00000044                 EXPORT           ADCSeq0_IRQHandler         [WEA
+K]
+  425 00000044                 EXPORT           ADCSeq1_IRQHandler         [WEA
+K]
+  426 00000044                 EXPORT           ADCSeq2_IRQHandler         [WEA
+K]
+  427 00000044                 EXPORT           ADCSeq3_IRQHandler         [WEA
+K]
+  428 00000044                 EXPORT           Watchdog_IRQHandler        [WEA
+K]
+  429 00000044                 EXPORT           Timer0A_IRQHandler         [WEA
+K]
+  430 00000044                 EXPORT           Timer0B_IRQHandler         [WEA
+K]
+  431 00000044                 EXPORT           Timer1A_IRQHandler         [WEA
+K]
+  432 00000044                 EXPORT           Timer1B_IRQHandler         [WEA
+K]
+  433 00000044                 EXPORT           Timer2A_IRQHandler         [WEA
+K]
+  434 00000044                 EXPORT           Timer2B_IRQHandler         [WEA
+K]
+  435 00000044                 EXPORT           Comp0_IRQHandler           [WEA
+K]
+  436 00000044                 EXPORT           Comp1_IRQHandler           [WEA
+K]
+  437 00000044                 EXPORT           Comp2_IRQHandler           [WEA
+K]
+  438 00000044                 EXPORT           SysCtrl_IRQHandler         [WEA
+K]
+  439 00000044                 EXPORT           FlashCtrl_IRQHandler       [WEA
+K]
+  440 00000044                 EXPORT           GPIOPortF_IRQHandler       [WEA
+K]
+  441 00000044                 EXPORT           GPIOPortG_IRQHandler       [WEA
+K]
+  442 00000044                 EXPORT           GPIOPortH_IRQHandler       [WEA
+K]
+  443 00000044                 EXPORT           UART2_IRQHandler           [WEA
+K]
+  444 00000044                 EXPORT           SSI1_IRQHandler            [WEA
+K]
+  445 00000044                 EXPORT           Timer3A_IRQHandler         [WEA
+K]
+  446 00000044                 EXPORT           Timer3B_IRQHandler         [WEA
+K]
+  447 00000044                 EXPORT           I2C1_IRQHandler            [WEA
+K]
+  448 00000044                 EXPORT           QEI1_IRQHandler            [WEA
+K]
+  449 00000044                 EXPORT           CAN0_IRQHandler            [WEA
+K]
+  450 00000044                 EXPORT           CAN1_IRQHandler            [WEA
+K]
+
+
+
+ARM Macro Assembler    Page 13 
+
+
+  451 00000044                 EXPORT           CAN2_IRQHandler            [WEA
+K]
+  452 00000044                 EXPORT           Hibernate_IRQHandler       [WEA
+K]
+  453 00000044                 EXPORT           USB0_IRQHandler            [WEA
+K]
+  454 00000044                 EXPORT           PWMGen3_IRQHandler         [WEA
+K]
+  455 00000044                 EXPORT           uDMAST_IRQHandler          [WEA
+K]
+  456 00000044                 EXPORT           uDMAError_IRQHandler       [WEA
+K]
+  457 00000044                 EXPORT           ADC1Seq0_IRQHandler        [WEA
+K]
+  458 00000044                 EXPORT           ADC1Seq1_IRQHandler        [WEA
+K]
+  459 00000044                 EXPORT           ADC1Seq2_IRQHandler        [WEA
+K]
+  460 00000044                 EXPORT           ADC1Seq3_IRQHandler        [WEA
+K]
+  461 00000044                 EXPORT           GPIOPortJ_IRQHandler       [WEA
+K]
+  462 00000044                 EXPORT           GPIOPortK_IRQHandler       [WEA
+K]
+  463 00000044                 EXPORT           GPIOPortL_IRQHandler       [WEA
+K]
+  464 00000044                 EXPORT           SSI2_IRQHandler            [WEA
+K]
+  465 00000044                 EXPORT           SSI3_IRQHandler            [WEA
+K]
+  466 00000044                 EXPORT           UART3_IRQHandler           [WEA
+K]
+  467 00000044                 EXPORT           UART4_IRQHandler           [WEA
+K]
+  468 00000044                 EXPORT           UART5_IRQHandler           [WEA
+K]
+  469 00000044                 EXPORT           UART6_IRQHandler           [WEA
+K]
+  470 00000044                 EXPORT           UART7_IRQHandler           [WEA
+K]
+  471 00000044                 EXPORT           I2C2_IRQHandler            [WEA
+K]
+  472 00000044                 EXPORT           I2C3_IRQHandler            [WEA
+K]
+  473 00000044                 EXPORT           Timer4A_IRQHandler         [WEA
+K]
+  474 00000044                 EXPORT           Timer4B_IRQHandler         [WEA
+K]
+  475 00000044                 EXPORT           Timer5A_IRQHandler         [WEA
+K]
+  476 00000044                 EXPORT           Timer5B_IRQHandler         [WEA
+K]
+  477 00000044                 EXPORT           WideTimer0A_IRQHandler     [WEA
+K]
+  478 00000044                 EXPORT           WideTimer0B_IRQHandler     [WEA
+K]
+  479 00000044                 EXPORT           WideTimer1A_IRQHandler     [WEA
+K]
+  480 00000044                 EXPORT           WideTimer1B_IRQHandler     [WEA
+
+
+
+ARM Macro Assembler    Page 14 
+
+
+K]
+  481 00000044                 EXPORT           WideTimer2A_IRQHandler     [WEA
+K]
+  482 00000044                 EXPORT           WideTimer2B_IRQHandler     [WEA
+K]
+  483 00000044                 EXPORT           WideTimer3A_IRQHandler     [WEA
+K]
+  484 00000044                 EXPORT           WideTimer3B_IRQHandler     [WEA
+K]
+  485 00000044                 EXPORT           WideTimer4A_IRQHandler     [WEA
+K]
+  486 00000044                 EXPORT           WideTimer4B_IRQHandler     [WEA
+K]
+  487 00000044                 EXPORT           WideTimer5A_IRQHandler     [WEA
+K]
+  488 00000044                 EXPORT           WideTimer5B_IRQHandler     [WEA
+K]
+  489 00000044                 EXPORT           FPU_IRQHandler             [WEA
+K]
+  490 00000044                 EXPORT           I2C4_IRQHandler            [WEA
+K]
+  491 00000044                 EXPORT           I2C5_IRQHandler            [WEA
+K]
+  492 00000044                 EXPORT           GPIOPortM_IRQHandler       [WEA
+K]
+  493 00000044                 EXPORT           GPIOPortN_IRQHandler       [WEA
+K]
+  494 00000044                 EXPORT           QEI2_IRQHandler            [WEA
+K]
+  495 00000044                 EXPORT           GPIOPortP0_IRQHandler      [WEA
+K]
+  496 00000044                 EXPORT           GPIOPortP1_IRQHandler      [WEA
+K]
+  497 00000044                 EXPORT           GPIOPortP2_IRQHandler      [WEA
+K]
+  498 00000044                 EXPORT           GPIOPortP3_IRQHandler      [WEA
+K]
+  499 00000044                 EXPORT           GPIOPortP4_IRQHandler      [WEA
+K]
+  500 00000044                 EXPORT           GPIOPortP5_IRQHandler      [WEA
+K]
+  501 00000044                 EXPORT           GPIOPortP6_IRQHandler      [WEA
+K]
+  502 00000044                 EXPORT           GPIOPortP7_IRQHandler      [WEA
+K]
+  503 00000044                 EXPORT           GPIOPortQ0_IRQHandler      [WEA
+K]
+  504 00000044                 EXPORT           GPIOPortQ1_IRQHandler      [WEA
+K]
+  505 00000044                 EXPORT           GPIOPortQ2_IRQHandler      [WEA
+K]
+  506 00000044                 EXPORT           GPIOPortQ3_IRQHandler      [WEA
+K]
+  507 00000044                 EXPORT           GPIOPortQ4_IRQHandler      [WEA
+K]
+  508 00000044                 EXPORT           GPIOPortQ5_IRQHandler      [WEA
+K]
+  509 00000044                 EXPORT           GPIOPortQ6_IRQHandler      [WEA
+K]
+
+
+
+ARM Macro Assembler    Page 15 
+
+
+  510 00000044                 EXPORT           GPIOPortQ7_IRQHandler      [WEA
+K]
+  511 00000044                 EXPORT           GPIOPortR_IRQHandler       [WEA
+K]
+  512 00000044                 EXPORT           GPIOPortS_IRQHandler       [WEA
+K]
+  513 00000044                 EXPORT           PWM1Gen0_IRQHandler        [WEA
+K]
+  514 00000044                 EXPORT           PWM1Gen1_IRQHandler        [WEA
+K]
+  515 00000044                 EXPORT           PWM1Gen2_IRQHandler        [WEA
+K]
+  516 00000044                 EXPORT           PWM1Gen3_IRQHandler        [WEA
+K]
+  517 00000044                 EXPORT           PWM1Fault_IRQHandler       [WEA
+K]
+  518 00000044         
+  519 00000044         GPIOPortA_IRQHandler
+  520 00000044         GPIOPortB_IRQHandler
+  521 00000044         GPIOPortC_IRQHandler
+  522 00000044         GPIOPortD_IRQHandler
+  523 00000044         GPIOPortE_IRQHandler
+  524 00000044         UART0_IRQHandler
+  525 00000044         UART1_IRQHandler
+  526 00000044         SSI0_IRQHandler
+  527 00000044         I2C0_IRQHandler
+  528 00000044         PWMFault_IRQHandler
+  529 00000044         PWMGen0_IRQHandler
+  530 00000044         PWMGen1_IRQHandler
+  531 00000044         PWMGen2_IRQHandler
+  532 00000044         QEI0_IRQHandler
+  533 00000044         ADCSeq0_IRQHandler
+  534 00000044         ADCSeq1_IRQHandler
+  535 00000044         ADCSeq2_IRQHandler
+  536 00000044         ADCSeq3_IRQHandler
+  537 00000044         Watchdog_IRQHandler
+  538 00000044         Timer0A_IRQHandler
+  539 00000044         Timer0B_IRQHandler
+  540 00000044         Timer1A_IRQHandler
+  541 00000044         Timer1B_IRQHandler
+  542 00000044         Timer2A_IRQHandler
+  543 00000044         Timer2B_IRQHandler
+  544 00000044         Comp0_IRQHandler
+  545 00000044         Comp1_IRQHandler
+  546 00000044         Comp2_IRQHandler
+  547 00000044         SysCtrl_IRQHandler
+  548 00000044         FlashCtrl_IRQHandler
+  549 00000044         GPIOPortF_IRQHandler
+  550 00000044         GPIOPortG_IRQHandler
+  551 00000044         GPIOPortH_IRQHandler
+  552 00000044         UART2_IRQHandler
+  553 00000044         SSI1_IRQHandler
+  554 00000044         Timer3A_IRQHandler
+  555 00000044         Timer3B_IRQHandler
+  556 00000044         I2C1_IRQHandler
+  557 00000044         QEI1_IRQHandler
+  558 00000044         CAN0_IRQHandler
+  559 00000044         CAN1_IRQHandler
+  560 00000044         CAN2_IRQHandler
+
+
+
+ARM Macro Assembler    Page 16 
+
+
+  561 00000044         Hibernate_IRQHandler
+  562 00000044         USB0_IRQHandler
+  563 00000044         PWMGen3_IRQHandler
+  564 00000044         uDMAST_IRQHandler
+  565 00000044         uDMAError_IRQHandler
+  566 00000044         ADC1Seq0_IRQHandler
+  567 00000044         ADC1Seq1_IRQHandler
+  568 00000044         ADC1Seq2_IRQHandler
+  569 00000044         ADC1Seq3_IRQHandler
+  570 00000044         GPIOPortJ_IRQHandler
+  571 00000044         GPIOPortK_IRQHandler
+  572 00000044         GPIOPortL_IRQHandler
+  573 00000044         SSI2_IRQHandler
+  574 00000044         SSI3_IRQHandler
+  575 00000044         UART3_IRQHandler
+  576 00000044         UART4_IRQHandler
+  577 00000044         UART5_IRQHandler
+  578 00000044         UART6_IRQHandler
+  579 00000044         UART7_IRQHandler
+  580 00000044         I2C2_IRQHandler
+  581 00000044         I2C3_IRQHandler
+  582 00000044         Timer4A_IRQHandler
+  583 00000044         Timer4B_IRQHandler
+  584 00000044         Timer5A_IRQHandler
+  585 00000044         Timer5B_IRQHandler
+  586 00000044         WideTimer0A_IRQHandler
+  587 00000044         WideTimer0B_IRQHandler
+  588 00000044         WideTimer1A_IRQHandler
+  589 00000044         WideTimer1B_IRQHandler
+  590 00000044         WideTimer2A_IRQHandler
+  591 00000044         WideTimer2B_IRQHandler
+  592 00000044         WideTimer3A_IRQHandler
+  593 00000044         WideTimer3B_IRQHandler
+  594 00000044         WideTimer4A_IRQHandler
+  595 00000044         WideTimer4B_IRQHandler
+  596 00000044         WideTimer5A_IRQHandler
+  597 00000044         WideTimer5B_IRQHandler
+  598 00000044         FPU_IRQHandler
+  599 00000044         I2C4_IRQHandler
+  600 00000044         I2C5_IRQHandler
+  601 00000044         GPIOPortM_IRQHandler
+  602 00000044         GPIOPortN_IRQHandler
+  603 00000044         QEI2_IRQHandler
+  604 00000044         GPIOPortP0_IRQHandler
+  605 00000044         GPIOPortP1_IRQHandler
+  606 00000044         GPIOPortP2_IRQHandler
+  607 00000044         GPIOPortP3_IRQHandler
+  608 00000044         GPIOPortP4_IRQHandler
+  609 00000044         GPIOPortP5_IRQHandler
+  610 00000044         GPIOPortP6_IRQHandler
+  611 00000044         GPIOPortP7_IRQHandler
+  612 00000044         GPIOPortQ0_IRQHandler
+  613 00000044         GPIOPortQ1_IRQHandler
+  614 00000044         GPIOPortQ2_IRQHandler
+  615 00000044         GPIOPortQ3_IRQHandler
+  616 00000044         GPIOPortQ4_IRQHandler
+  617 00000044         GPIOPortQ5_IRQHandler
+  618 00000044         GPIOPortQ6_IRQHandler
+  619 00000044         GPIOPortQ7_IRQHandler
+
+
+
+ARM Macro Assembler    Page 17 
+
+
+  620 00000044         GPIOPortR_IRQHandler
+  621 00000044         GPIOPortS_IRQHandler
+  622 00000044         PWM1Gen0_IRQHandler
+  623 00000044         PWM1Gen1_IRQHandler
+  624 00000044         PWM1Gen2_IRQHandler
+  625 00000044         PWM1Gen3_IRQHandler
+  626 00000044         PWM1Fault_IRQHandler
+  627 00000044 2000            MOVS             r0,#0
+  628 00000046 F05F 31FF       MOVS             r1,#-1      ; 0xFFFFFFF
+  629 0000004A E7FE            B                assert_failed
+  630 0000004C                 ENDP
+  631 0000004C         
+  632 0000004C                 ALIGN                        ; make sure the end
+                                                             of this section is
+                                                             aligned
+  633 0000004C         
+  634 0000004C         
+  635 0000004C         ;*******************************************************
+                       ***********************
+  636 0000004C         ;
+  637 0000004C         ; The function expected of the C library startup code fo
+                       r defining the stack
+  638 0000004C         ; and heap memory locations.  For the C library version 
+                       of the startup code,
+  639 0000004C         ; provide this function so that the C library initializa
+                       tion code can find out
+  640 0000004C         ; the location of the stack and heap.
+  641 0000004C         ;
+  642 0000004C         ;*******************************************************
+                       ***********************
+  643 0000004C                 IF               :DEF: __MICROLIB
+  649 0000004C                 IMPORT           __use_two_region_memory
+  650 0000004C                 EXPORT           __user_initial_stackheap
+  651 0000004C         
+  652 0000004C         __user_initial_stackheap
+                               PROC
+  653 0000004C 4806            LDR              R0, =__heap_base
+  654 0000004E 4907            LDR              R1, =__stack_limit
+  655 00000050 4A07            LDR              R2, =__heap_limit
+  656 00000052 4B08            LDR              R3, =__stack_base
+  657 00000054 4770            BX               LR
+  658 00000056                 ENDP
+  659 00000056                 ENDIF
+  660 00000056         
+  661 00000056         ;*******************************************************
+                       ***********************
+  662 00000056         ;
+  663 00000056         ; The function assert_failed defines the error/assertion
+                        handling policy
+  664 00000056         ; for the application. After making sure that the stack 
+                       is OK, this function
+  665 00000056         ; calls Q_onAssert, which should NOT return (typically r
+                       eset the CPU).
+  666 00000056         ;
+  667 00000056         ; NOTE: the function Q_onAssert should NOT return.
+  668 00000056         ;
+  669 00000056         ; The C proptotype of the assert_failed() and Q_onAssert
+                       () functions are:
+  670 00000056         ; void assert_failed(char const *file, int line);
+
+
+
+ARM Macro Assembler    Page 18 
+
+
+  671 00000056         ; void Q_onAssert   (char const *file, int line);
+  672 00000056         ;*******************************************************
+                       ***********************
+  673 00000056                 EXPORT           assert_failed
+  674 00000056                 IMPORT           Q_onAssert
+  675 00000056         assert_failed
+                               PROC
+  676 00000056         
+  677 00000056 F8DF D020       LDR              sp,=__initial_sp ; re-set the S
+                                                            P in case of stack 
+                                                            overflow
+  678 0000005A F7FF FFFE       BL               Q_onAssert  ; call the applicat
+                                                            ion-specific handle
+                                                            r
+  679 0000005E         
+  680 0000005E E7FE            B                .           ; should not be rea
+                                                            ched, but just in c
+                                                            ase...
+  681 00000060         
+  682 00000060                 ENDP
+  683 00000060         
+  684 00000060                 ALIGN                        ; make sure the end
+                                                             of this section is
+                                                             aligned
+  685 00000060         
+  686 00000060                 END                          ; end of module
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+              00000000 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4 --apcs=interw
+ork --depend=.\dbg\startup_tm4c123gh6pm.d -o.\dbg\startup_tm4c123gh6pm.o --pred
+efine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 527" --predefine="TM4
+C123GH6PM SETA 1" --predefine="Stack_Size SETA 1024" --predefine="Heap_Size SET
+A 16" --list=.\dbg\lst\startup_tm4c123gh6pm.lst ..\qpc\3rd_party\ek-tm4c123gxl\
+arm\startup_TM4C123GH6PM.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+STACK 00000000
+
+Symbol: STACK
+   Definitions
+      At line 56 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      None
+Comment: STACK unused
+StackMem 00000000
+
+Symbol: StackMem
+   Definitions
+      At line 58 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      None
+Comment: StackMem unused
+__initial_sp 00000400
+
+Symbol: __initial_sp
+   Definitions
+      At line 62 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      At line 99 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+      At line 677 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+__stack_base 00000000
+
+Symbol: __stack_base
+   Definitions
+      At line 57 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      At line 656 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+Comment: __stack_base used once
+__stack_limit 00000400
+
+Symbol: __stack_limit
+   Definitions
+      At line 61 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      At line 654 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+Comment: __stack_limit used once
+5 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+HEAP 00000000
+
+Symbol: HEAP
+   Definitions
+      At line 69 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      None
+Comment: HEAP unused
+HeapMem 00000000
+
+Symbol: HeapMem
+   Definitions
+      At line 71 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      None
+Comment: HeapMem unused
+__heap_base 00000000
+
+Symbol: __heap_base
+   Definitions
+      At line 70 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      At line 653 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+Comment: __heap_base used once
+__heap_limit 00000010
+
+Symbol: __heap_limit
+   Definitions
+      At line 74 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      At line 655 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+Comment: __heap_limit used once
+4 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+RESET 00000000
+
+Symbol: RESET
+   Definitions
+      At line 88 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      None
+Comment: RESET unused
+__Vectors 00000000
+
+Symbol: __Vectors
+   Definitions
+      At line 98 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+   Uses
+      At line 89 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+      At line 258 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+__Vectors_End 0000026C
+
+Symbol: __Vectors_End
+   Definitions
+      At line 256 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 90 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+      At line 258 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+3 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 267 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      None
+Comment: .text unused
+ADC1Seq0_IRQHandler 00000044
+
+Symbol: ADC1Seq0_IRQHandler
+   Definitions
+      At line 566 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 165 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 457 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+ADC1Seq1_IRQHandler 00000044
+
+Symbol: ADC1Seq1_IRQHandler
+   Definitions
+      At line 567 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 166 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 458 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+ADC1Seq2_IRQHandler 00000044
+
+Symbol: ADC1Seq2_IRQHandler
+   Definitions
+      At line 568 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 167 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 459 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+ADC1Seq3_IRQHandler 00000044
+
+Symbol: ADC1Seq3_IRQHandler
+   Definitions
+      At line 569 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 168 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 460 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+ADCSeq0_IRQHandler 00000044
+
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: ADCSeq0_IRQHandler
+   Definitions
+      At line 533 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 131 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 424 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+ADCSeq1_IRQHandler 00000044
+
+Symbol: ADCSeq1_IRQHandler
+   Definitions
+      At line 534 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 132 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 425 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+ADCSeq2_IRQHandler 00000044
+
+Symbol: ADCSeq2_IRQHandler
+   Definitions
+      At line 535 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 133 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 426 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+ADCSeq3_IRQHandler 00000044
+
+Symbol: ADCSeq3_IRQHandler
+   Definitions
+      At line 536 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 134 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 427 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+BusFault_Handler 00000020
+
+Symbol: BusFault_Handler
+   Definitions
+      At line 337 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 104 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 338 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+CAN0_IRQHandler 00000044
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+
+Symbol: CAN0_IRQHandler
+   Definitions
+      At line 558 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 156 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 449 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+CAN1_IRQHandler 00000044
+
+Symbol: CAN1_IRQHandler
+   Definitions
+      At line 559 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 157 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 450 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+CAN2_IRQHandler 00000044
+
+Symbol: CAN2_IRQHandler
+   Definitions
+      At line 560 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 158 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 451 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Comp0_IRQHandler 00000044
+
+Symbol: Comp0_IRQHandler
+   Definitions
+      At line 544 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 142 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 435 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Comp1_IRQHandler 00000044
+
+Symbol: Comp1_IRQHandler
+   Definitions
+      At line 545 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 143 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 436 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+
+ARM Macro Assembler    Page 4 Alphabetic symbol ordering
+Relocatable symbols
+
+Comp2_IRQHandler 00000044
+
+Symbol: Comp2_IRQHandler
+   Definitions
+      At line 546 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 144 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 437 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+DebugMon_Handler 00000032
+
+Symbol: DebugMon_Handler
+   Definitions
+      At line 373 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 111 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 374 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Default_Handler 00000044
+
+Symbol: Default_Handler
+   Definitions
+      At line 409 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      None
+Comment: Default_Handler unused
+FPU_IRQHandler 00000044
+
+Symbol: FPU_IRQHandler
+   Definitions
+      At line 598 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 223 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 489 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+FlashCtrl_IRQHandler 00000044
+
+Symbol: FlashCtrl_IRQHandler
+   Definitions
+      At line 548 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 146 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 439 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortA_IRQHandler 00000044
+
+
+
+
+ARM Macro Assembler    Page 5 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: GPIOPortA_IRQHandler
+   Definitions
+      At line 519 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 117 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 410 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortB_IRQHandler 00000044
+
+Symbol: GPIOPortB_IRQHandler
+   Definitions
+      At line 520 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 118 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 411 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortC_IRQHandler 00000044
+
+Symbol: GPIOPortC_IRQHandler
+   Definitions
+      At line 521 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 119 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 412 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortD_IRQHandler 00000044
+
+Symbol: GPIOPortD_IRQHandler
+   Definitions
+      At line 522 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 120 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 413 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortE_IRQHandler 00000044
+
+Symbol: GPIOPortE_IRQHandler
+   Definitions
+      At line 523 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 121 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 414 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortF_IRQHandler 00000044
+
+
+
+ARM Macro Assembler    Page 6 Alphabetic symbol ordering
+Relocatable symbols
+
+
+Symbol: GPIOPortF_IRQHandler
+   Definitions
+      At line 549 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 147 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 440 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortG_IRQHandler 00000044
+
+Symbol: GPIOPortG_IRQHandler
+   Definitions
+      At line 550 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 148 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 441 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortH_IRQHandler 00000044
+
+Symbol: GPIOPortH_IRQHandler
+   Definitions
+      At line 551 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 149 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 442 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortJ_IRQHandler 00000044
+
+Symbol: GPIOPortJ_IRQHandler
+   Definitions
+      At line 570 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 171 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 461 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortK_IRQHandler 00000044
+
+Symbol: GPIOPortK_IRQHandler
+   Definitions
+      At line 571 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 172 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 462 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+
+ARM Macro Assembler    Page 7 Alphabetic symbol ordering
+Relocatable symbols
+
+GPIOPortL_IRQHandler 00000044
+
+Symbol: GPIOPortL_IRQHandler
+   Definitions
+      At line 572 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 173 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 463 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortM_IRQHandler 00000044
+
+Symbol: GPIOPortM_IRQHandler
+   Definitions
+      At line 601 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 228 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 492 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortN_IRQHandler 00000044
+
+Symbol: GPIOPortN_IRQHandler
+   Definitions
+      At line 602 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 229 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 493 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortP0_IRQHandler 00000044
+
+Symbol: GPIOPortP0_IRQHandler
+   Definitions
+      At line 604 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 233 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 495 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortP1_IRQHandler 00000044
+
+Symbol: GPIOPortP1_IRQHandler
+   Definitions
+      At line 605 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 234 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 496 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+ARM Macro Assembler    Page 8 Alphabetic symbol ordering
+Relocatable symbols
+
+
+GPIOPortP2_IRQHandler 00000044
+
+Symbol: GPIOPortP2_IRQHandler
+   Definitions
+      At line 606 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 235 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 497 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortP3_IRQHandler 00000044
+
+Symbol: GPIOPortP3_IRQHandler
+   Definitions
+      At line 607 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 236 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 498 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortP4_IRQHandler 00000044
+
+Symbol: GPIOPortP4_IRQHandler
+   Definitions
+      At line 608 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 237 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 499 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortP5_IRQHandler 00000044
+
+Symbol: GPIOPortP5_IRQHandler
+   Definitions
+      At line 609 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 238 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 500 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortP6_IRQHandler 00000044
+
+Symbol: GPIOPortP6_IRQHandler
+   Definitions
+      At line 610 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 239 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 501 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+
+
+
+ARM Macro Assembler    Page 9 Alphabetic symbol ordering
+Relocatable symbols
+
+PM.s
+
+GPIOPortP7_IRQHandler 00000044
+
+Symbol: GPIOPortP7_IRQHandler
+   Definitions
+      At line 611 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 240 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 502 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortQ0_IRQHandler 00000044
+
+Symbol: GPIOPortQ0_IRQHandler
+   Definitions
+      At line 612 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 241 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 503 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortQ1_IRQHandler 00000044
+
+Symbol: GPIOPortQ1_IRQHandler
+   Definitions
+      At line 613 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 242 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 504 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortQ2_IRQHandler 00000044
+
+Symbol: GPIOPortQ2_IRQHandler
+   Definitions
+      At line 614 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 243 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 505 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortQ3_IRQHandler 00000044
+
+Symbol: GPIOPortQ3_IRQHandler
+   Definitions
+      At line 615 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 244 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+ARM Macro Assembler    Page 10 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 506 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortQ4_IRQHandler 00000044
+
+Symbol: GPIOPortQ4_IRQHandler
+   Definitions
+      At line 616 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 245 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 507 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortQ5_IRQHandler 00000044
+
+Symbol: GPIOPortQ5_IRQHandler
+   Definitions
+      At line 617 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 246 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 508 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortQ6_IRQHandler 00000044
+
+Symbol: GPIOPortQ6_IRQHandler
+   Definitions
+      At line 618 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 247 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 509 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortQ7_IRQHandler 00000044
+
+Symbol: GPIOPortQ7_IRQHandler
+   Definitions
+      At line 619 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 248 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 510 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortR_IRQHandler 00000044
+
+Symbol: GPIOPortR_IRQHandler
+   Definitions
+      At line 620 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 249 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+
+
+
+ARM Macro Assembler    Page 11 Alphabetic symbol ordering
+Relocatable symbols
+
+PM.s
+      At line 511 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+GPIOPortS_IRQHandler 00000044
+
+Symbol: GPIOPortS_IRQHandler
+   Definitions
+      At line 621 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 250 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 512 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+HardFault_Handler 00000014
+
+Symbol: HardFault_Handler
+   Definitions
+      At line 313 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 102 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 314 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Hibernate_IRQHandler 00000044
+
+Symbol: Hibernate_IRQHandler
+   Definitions
+      At line 561 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 160 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 452 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+I2C0_IRQHandler 00000044
+
+Symbol: I2C0_IRQHandler
+   Definitions
+      At line 527 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 125 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 418 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+I2C1_IRQHandler 00000044
+
+Symbol: I2C1_IRQHandler
+   Definitions
+      At line 556 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 12 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 154 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 447 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+I2C2_IRQHandler 00000044
+
+Symbol: I2C2_IRQHandler
+   Definitions
+      At line 580 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 185 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 471 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+I2C3_IRQHandler 00000044
+
+Symbol: I2C3_IRQHandler
+   Definitions
+      At line 581 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 186 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 472 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+I2C4_IRQHandler 00000044
+
+Symbol: I2C4_IRQHandler
+   Definitions
+      At line 599 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 226 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 490 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+I2C5_IRQHandler 00000044
+
+Symbol: I2C5_IRQHandler
+   Definitions
+      At line 600 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 227 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 491 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+MemManage_Handler 0000001A
+
+Symbol: MemManage_Handler
+   Definitions
+      At line 325 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+ARM Macro Assembler    Page 13 Alphabetic symbol ordering
+Relocatable symbols
+
+   Uses
+      At line 103 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 326 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+NMI_Handler 0000000E
+
+Symbol: NMI_Handler
+   Definitions
+      At line 301 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 101 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 302 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWM1Fault_IRQHandler 00000044
+
+Symbol: PWM1Fault_IRQHandler
+   Definitions
+      At line 626 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 255 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 517 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWM1Gen0_IRQHandler 00000044
+
+Symbol: PWM1Gen0_IRQHandler
+   Definitions
+      At line 622 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 251 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 513 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWM1Gen1_IRQHandler 00000044
+
+Symbol: PWM1Gen1_IRQHandler
+   Definitions
+      At line 623 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 252 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 514 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWM1Gen2_IRQHandler 00000044
+
+Symbol: PWM1Gen2_IRQHandler
+   Definitions
+      At line 624 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+
+
+
+ARM Macro Assembler    Page 14 Alphabetic symbol ordering
+Relocatable symbols
+
+PM.s
+   Uses
+      At line 253 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 515 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWM1Gen3_IRQHandler 00000044
+
+Symbol: PWM1Gen3_IRQHandler
+   Definitions
+      At line 625 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 254 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 516 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWMFault_IRQHandler 00000044
+
+Symbol: PWMFault_IRQHandler
+   Definitions
+      At line 528 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 126 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 419 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWMGen0_IRQHandler 00000044
+
+Symbol: PWMGen0_IRQHandler
+   Definitions
+      At line 529 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 127 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 420 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWMGen1_IRQHandler 00000044
+
+Symbol: PWMGen1_IRQHandler
+   Definitions
+      At line 530 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 128 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 421 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWMGen2_IRQHandler 00000044
+
+Symbol: PWMGen2_IRQHandler
+   Definitions
+
+
+
+ARM Macro Assembler    Page 15 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 531 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 129 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 422 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PWMGen3_IRQHandler 00000044
+
+Symbol: PWMGen3_IRQHandler
+   Definitions
+      At line 563 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 162 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 454 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+PendSV_Handler 00000038
+
+Symbol: PendSV_Handler
+   Definitions
+      At line 385 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 113 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 386 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+QEI0_IRQHandler 00000044
+
+Symbol: QEI0_IRQHandler
+   Definitions
+      At line 532 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 130 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 423 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+QEI1_IRQHandler 00000044
+
+Symbol: QEI1_IRQHandler
+   Definitions
+      At line 557 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 155 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 448 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+QEI2_IRQHandler 00000044
+
+Symbol: QEI2_IRQHandler
+
+
+
+ARM Macro Assembler    Page 16 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 603 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 230 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 494 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Reset_Handler 00000000
+
+Symbol: Reset_Handler
+   Definitions
+      At line 275 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 100 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 276 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+SSI0_IRQHandler 00000044
+
+Symbol: SSI0_IRQHandler
+   Definitions
+      At line 526 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 124 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 417 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+SSI1_IRQHandler 00000044
+
+Symbol: SSI1_IRQHandler
+   Definitions
+      At line 553 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 151 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 444 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+SSI2_IRQHandler 00000044
+
+Symbol: SSI2_IRQHandler
+   Definitions
+      At line 573 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 174 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 464 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+SSI3_IRQHandler 00000044
+
+
+
+
+ARM Macro Assembler    Page 17 Alphabetic symbol ordering
+Relocatable symbols
+
+Symbol: SSI3_IRQHandler
+   Definitions
+      At line 574 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 175 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 465 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+SVC_Handler 0000002C
+
+Symbol: SVC_Handler
+   Definitions
+      At line 361 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 110 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 362 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+SysCtrl_IRQHandler 00000044
+
+Symbol: SysCtrl_IRQHandler
+   Definitions
+      At line 547 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 145 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 438 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+SysTick_Handler 0000003E
+
+Symbol: SysTick_Handler
+   Definitions
+      At line 397 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 114 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 398 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer0A_IRQHandler 00000044
+
+Symbol: Timer0A_IRQHandler
+   Definitions
+      At line 538 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 136 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 429 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer0B_IRQHandler 00000044
+
+
+
+ARM Macro Assembler    Page 18 Alphabetic symbol ordering
+Relocatable symbols
+
+
+Symbol: Timer0B_IRQHandler
+   Definitions
+      At line 539 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 137 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 430 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer1A_IRQHandler 00000044
+
+Symbol: Timer1A_IRQHandler
+   Definitions
+      At line 540 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 138 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 431 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer1B_IRQHandler 00000044
+
+Symbol: Timer1B_IRQHandler
+   Definitions
+      At line 541 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 139 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 432 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer2A_IRQHandler 00000044
+
+Symbol: Timer2A_IRQHandler
+   Definitions
+      At line 542 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 140 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 433 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer2B_IRQHandler 00000044
+
+Symbol: Timer2B_IRQHandler
+   Definitions
+      At line 543 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 141 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 434 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+
+ARM Macro Assembler    Page 19 Alphabetic symbol ordering
+Relocatable symbols
+
+Timer3A_IRQHandler 00000044
+
+Symbol: Timer3A_IRQHandler
+   Definitions
+      At line 554 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 152 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 445 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer3B_IRQHandler 00000044
+
+Symbol: Timer3B_IRQHandler
+   Definitions
+      At line 555 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 153 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 446 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer4A_IRQHandler 00000044
+
+Symbol: Timer4A_IRQHandler
+   Definitions
+      At line 582 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 187 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 473 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer4B_IRQHandler 00000044
+
+Symbol: Timer4B_IRQHandler
+   Definitions
+      At line 583 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 188 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 474 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Timer5A_IRQHandler 00000044
+
+Symbol: Timer5A_IRQHandler
+   Definitions
+      At line 584 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 209 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 475 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+ARM Macro Assembler    Page 20 Alphabetic symbol ordering
+Relocatable symbols
+
+
+Timer5B_IRQHandler 00000044
+
+Symbol: Timer5B_IRQHandler
+   Definitions
+      At line 585 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 210 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 476 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+UART0_IRQHandler 00000044
+
+Symbol: UART0_IRQHandler
+   Definitions
+      At line 524 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 122 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 415 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+UART1_IRQHandler 00000044
+
+Symbol: UART1_IRQHandler
+   Definitions
+      At line 525 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 123 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 416 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+UART2_IRQHandler 00000044
+
+Symbol: UART2_IRQHandler
+   Definitions
+      At line 552 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 150 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 443 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+UART3_IRQHandler 00000044
+
+Symbol: UART3_IRQHandler
+   Definitions
+      At line 575 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 176 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 466 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+
+
+
+ARM Macro Assembler    Page 21 Alphabetic symbol ordering
+Relocatable symbols
+
+PM.s
+
+UART4_IRQHandler 00000044
+
+Symbol: UART4_IRQHandler
+   Definitions
+      At line 576 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 177 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 467 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+UART5_IRQHandler 00000044
+
+Symbol: UART5_IRQHandler
+   Definitions
+      At line 577 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 178 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 468 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+UART6_IRQHandler 00000044
+
+Symbol: UART6_IRQHandler
+   Definitions
+      At line 578 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 179 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 469 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+UART7_IRQHandler 00000044
+
+Symbol: UART7_IRQHandler
+   Definitions
+      At line 579 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 180 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 470 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+USB0_IRQHandler 00000044
+
+Symbol: USB0_IRQHandler
+   Definitions
+      At line 562 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 161 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+ARM Macro Assembler    Page 22 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 453 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+UsageFault_Handler 00000026
+
+Symbol: UsageFault_Handler
+   Definitions
+      At line 349 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 105 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 350 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+Watchdog_IRQHandler 00000044
+
+Symbol: Watchdog_IRQHandler
+   Definitions
+      At line 537 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 135 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 428 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer0A_IRQHandler 00000044
+
+Symbol: WideTimer0A_IRQHandler
+   Definitions
+      At line 586 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 211 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 477 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer0B_IRQHandler 00000044
+
+Symbol: WideTimer0B_IRQHandler
+   Definitions
+      At line 587 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 212 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 478 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer1A_IRQHandler 00000044
+
+Symbol: WideTimer1A_IRQHandler
+   Definitions
+      At line 588 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 213 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+
+
+
+ARM Macro Assembler    Page 23 Alphabetic symbol ordering
+Relocatable symbols
+
+PM.s
+      At line 479 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer1B_IRQHandler 00000044
+
+Symbol: WideTimer1B_IRQHandler
+   Definitions
+      At line 589 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 214 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 480 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer2A_IRQHandler 00000044
+
+Symbol: WideTimer2A_IRQHandler
+   Definitions
+      At line 590 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 215 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 481 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer2B_IRQHandler 00000044
+
+Symbol: WideTimer2B_IRQHandler
+   Definitions
+      At line 591 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 216 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 482 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer3A_IRQHandler 00000044
+
+Symbol: WideTimer3A_IRQHandler
+   Definitions
+      At line 592 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 217 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 483 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer3B_IRQHandler 00000044
+
+Symbol: WideTimer3B_IRQHandler
+   Definitions
+      At line 593 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 24 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 218 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 484 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer4A_IRQHandler 00000044
+
+Symbol: WideTimer4A_IRQHandler
+   Definitions
+      At line 594 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 219 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 485 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer4B_IRQHandler 00000044
+
+Symbol: WideTimer4B_IRQHandler
+   Definitions
+      At line 595 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 220 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 486 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer5A_IRQHandler 00000044
+
+Symbol: WideTimer5A_IRQHandler
+   Definitions
+      At line 596 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 221 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 487 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+WideTimer5B_IRQHandler 00000044
+
+Symbol: WideTimer5B_IRQHandler
+   Definitions
+      At line 597 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 222 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 488 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+__user_initial_stackheap 0000004C
+
+Symbol: __user_initial_stackheap
+   Definitions
+      At line 652 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+ARM Macro Assembler    Page 25 Alphabetic symbol ordering
+Relocatable symbols
+
+   Uses
+      At line 650 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+Comment: __user_initial_stackheap used once
+assert_failed 00000056
+
+Symbol: assert_failed
+   Definitions
+      At line 675 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 293 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 305 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 317 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 329 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 341 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 353 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 365 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 377 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 389 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 401 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 629 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 673 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+uDMAError_IRQHandler 00000044
+
+Symbol: uDMAError_IRQHandler
+   Definitions
+      At line 565 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 164 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 456 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+uDMAST_IRQHandler 00000044
+
+Symbol: uDMAST_IRQHandler
+   Definitions
+      At line 564 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 163 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+      At line 455 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+
+
+
+ARM Macro Assembler    Page 26 Alphabetic symbol ordering
+Relocatable symbols
+
+
+122 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+__Vectors_Size 0000026C
+
+Symbol: __Vectors_Size
+   Definitions
+      At line 258 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 91 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6P
+M.s
+Comment: __Vectors_Size used once
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+Q_onAssert 00000000
+
+Symbol: Q_onAssert
+   Definitions
+      At line 674 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 678 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+Comment: Q_onAssert used once
+SystemInit 00000000
+
+Symbol: SystemInit
+   Definitions
+      At line 277 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 280 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+Comment: SystemInit used once
+__main 00000000
+
+Symbol: __main
+   Definitions
+      At line 278 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      At line 286 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+Comment: __main used once
+__use_two_region_memory 00000000
+
+Symbol: __use_two_region_memory
+   Definitions
+      At line 649 in file ..\qpc\3rd_party\ek-tm4c123gxl\arm\startup_TM4C123GH6
+PM.s
+   Uses
+      None
+Comment: __use_two_region_memory unused
+4 symbols
+478 symbols in table
